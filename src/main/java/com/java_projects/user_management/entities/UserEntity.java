@@ -5,8 +5,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,17 +43,19 @@ public class UserEntity {
     @Column(name = "primary_phone_id", unique = false, nullable = true, length = 50)
     private UUID primary_phone_id;
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Date created_at;
+    @CreatedDate
+    private LocalDateTime created_at;
     @Column(name = "updated_at", nullable = false)
-    private Date updated_at;
+    @UpdateTimestamp
+    private LocalDateTime updated_at;
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
     @Column(name = "delete_self_enabled", nullable = false)
     private boolean delete_self_enabled = false;
     @Column(name = "otp_enabled", nullable = false)
     private boolean otp_enabled = false;
-    @Column(name = "last_active_at", nullable = false)
-    private Date last_active_at;
+    @Column(name = "last_active_at")
+    private LocalDateTime last_active_at;
     @Column(name = "create_organization_enabled", nullable = false)
     private boolean create_organization_enabled = false;
     @Column(name = "emails")

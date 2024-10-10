@@ -1,6 +1,5 @@
 package com.java_projects.user_management.services;
 
-import com.java_projects.user_management.advisor.ResponseExceptionHandler;
 import com.java_projects.user_management.exceptions.InternalServerException;
 import com.java_projects.user_management.exceptions.NotFoundException;
 import com.java_projects.user_management.exceptions.UserNotCreatedException;
@@ -11,6 +10,7 @@ import com.java_projects.user_management.models.UserModel;
 import com.java_projects.user_management.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,9 +19,6 @@ import java.util.UUID;
 public class UserService {
     @Autowired
     UserRepository userRepository;
-
-    @Autowired
-    ResponseExceptionHandler responseExceptionHandler;
 
     public UserEntity getUserById(UUID user_id) throws NotFoundException, InternalServerException {
         Optional<UserEntity> user = userRepository.findById(user_id);
@@ -35,13 +32,12 @@ public class UserService {
 
     }
 
-    public List<UserEntity> getAllUsers() {
+    public List<UserEntity> getAllUsers() throws InternalServerException {
         try {
             return userRepository.findAll();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InternalServerException("Something went wrong");
         }
-        return null;
     }
 
     public void createUser(UserModel userModel) throws UserNotCreatedException {
@@ -51,51 +47,53 @@ public class UserService {
             userEntity.setFirstname(userModel.getFirstname());
             userEntity.setLastname(userModel.getLastname());
             userEntity.setPassword(userModel.getPassword());
+            userEntity.setImage_url(userModel.getImage_url());
+            userEntity.setHas_image(!(userModel.getImage_url() == null));
+            userEntity.setCreated_at(LocalDateTime.parse(LocalDateTime.now().toString()));
+            userEntity.setUpdated_at(LocalDateTime.parse(LocalDateTime.now().toString()));
             userRepository.save(userEntity);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new UserNotCreatedException("Error creating user");
         }
     }
 
-    public void updateUser(UUID userId, UserModel userModel) throws UserUpdateFailedException {
+    public void updateUser(UUID userId, UserModel userModel) throws UserUpdateFailedException, NotFoundException {
+        System.out.println(userModel);
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        if (userModel.getUsername() != null && !userModel.getUsername().isEmpty()) {
+            userEntity.setUsername(userModel.getUsername());
+        }
+        if (userModel.getFirstname() != null && !userModel.getFirstname().isEmpty()) {
+            userEntity.setFirstname(userModel.getFirstname());
+        }
+        if (userModel.getLastname() != null && !userModel.getLastname().isEmpty()) {
+            userEntity.setLastname(userModel.getLastname());
+        }
+        if (userModel.getImage_url() != null && !userModel.getImage_url().isEmpty()) {
+            userEntity.setImage_url(userModel.getImage_url());
+        }
+        userEntity.setHas_image(!(userModel.getImage_url() == null));
         try {
-            UserEntity userEntity = userRepository.findById(userId).orElse(null);
-            if (userEntity != null) {
-                if (userModel.getUsername() != null && !userModel.getUsername().isEmpty()) {
-                    userEntity.setUsername(userModel.getUsername());
-                }
-                if (userModel.getFirstname() != null && !userModel.getFirstname().isEmpty()) {
-                    userEntity.setFirstname(userModel.getFirstname());
-                }
-                if (userModel.getLastname() != null && !userModel.getLastname().isEmpty()) {
-                    userEntity.setLastname(userModel.getLastname());
-                }
-                if (userModel.getPassword() != null && !userModel.getPassword().isEmpty()) {
-                    userEntity.setPassword(userModel.getPassword());
-                }
-                userRepository.save(userEntity);
-            } else {
-                System.out.println("User not found for ID: " + userId);
-            }
+            userRepository.save(userEntity);
         } catch (Exception e) {
             throw new UserUpdateFailedException("Failed to update user");
         }
     }
 
-    public void deleteUser(UUID userId) {
+    public void deleteUser(UUID userId) throws InternalServerException {
         try {
             userRepository.deleteById(userId);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InternalServerException("Something went wrong");
         }
     }
 
-    public List<UserEntity> getUsersByUsername(String username) {
+    public List<UserEntity> getUsersByUsername(String username) throws InternalServerException {
         try {
-            userRepository.findByUsername(username);
+            return userRepository.findUsersByUsername(username);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InternalServerException("Something went wrong");
         }
-        return null;
     }
 }
