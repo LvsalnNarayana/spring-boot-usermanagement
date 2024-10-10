@@ -33,11 +33,7 @@ public class UserService {
     }
 
     public List<UserEntity> getAllUsers() throws InternalServerException {
-        try {
-            return userRepository.findAll();
-        } catch (Exception e) {
-            throw new InternalServerException("Something went wrong");
-        }
+        return userRepository.findAll();
     }
 
     public void createUser(UserModel userModel) throws UserNotCreatedException {
@@ -53,13 +49,11 @@ public class UserService {
             userEntity.setUpdated_at(LocalDateTime.parse(LocalDateTime.now().toString()));
             userRepository.save(userEntity);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new UserNotCreatedException("Error creating user");
         }
     }
 
     public void updateUser(UUID userId, UserModel userModel) throws UserUpdateFailedException, NotFoundException {
-        System.out.println(userModel);
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         if (userModel.getUsername() != null && !userModel.getUsername().isEmpty()) {
             userEntity.setUsername(userModel.getUsername());

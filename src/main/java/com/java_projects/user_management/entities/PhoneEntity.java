@@ -1,5 +1,6 @@
 package com.java_projects.user_management.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,4 +32,7 @@ public class PhoneEntity {
     private Date created_at;
     @Column(name = "updated_at",nullable = false)
     private Date updated_at;
+    @ManyToOne
+    @JsonIgnore
+    private UserEntity user;
 }

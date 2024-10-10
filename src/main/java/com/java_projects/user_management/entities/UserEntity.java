@@ -59,10 +59,10 @@ public class UserEntity {
     @Column(name = "create_organization_enabled", nullable = false)
     private boolean create_organization_enabled = false;
     @Column(name = "emails")
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,targetEntity = EmailEntity.class)
     private List<EmailEntity> emailEntities;
     @Column(name = "phones")
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, targetEntity = PhoneEntity.class)
     private List<PhoneEntity> phoneEntities;
 }
 

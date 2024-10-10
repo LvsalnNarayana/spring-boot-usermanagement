@@ -13,4 +13,5 @@ import java.util.regex.Pattern;
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     @Query("SELECT u FROM users u WHERE u.username LIKE %?1%")
     public List<UserEntity> findUsersByUsername(String username);
+
 }
