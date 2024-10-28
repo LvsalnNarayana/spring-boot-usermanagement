@@ -46,7 +46,6 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
         return getExceptionResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     private ResponseEntity<ErrorMessage> getExceptionResponse(final String message, HttpStatus httpStatus) {
         ErrorMessage errorMessage = new ErrorMessage(message);
         return ResponseEntity.status(httpStatus).body(errorMessage);

@@ -13,55 +13,61 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class EmailService {
 
     @Autowired
-    EmailRepository emailRepository;
+    private EmailRepository emailRepository;
+
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     public List<EmailEntity> getAllEmails(UUID userId) throws NotFoundException, InternalServerException {
-        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
         try {
             return emailRepository.findByUser(user);
         } catch (Exception e) {
-            throw new InternalServerException("Failed to get emails by user");
+            throw new InternalServerException("Failed to retrieve emails for the user.");
         }
     }
 
     public EmailEntity getEmailById(UUID emailId, UUID userId) throws NotFoundException {
-        try {
-            return emailRepository.findByIdAndUser_Id(emailId, userId).orElseThrow(() -> new NotFoundException("Email not found"));
-        } catch (NotFoundException e) {
-            throw new NotFoundException(e.getMessage());
-        }
+        return emailRepository.findByIdAndUser_Id(emailId, userId)
+                .orElseThrow(() -> new NotFoundException("Email not found"));
     }
 
-    public void createEmail(EmailModel email, UUID userId) throws NotFoundException, InternalServerException {
-        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+    public void createEmail(EmailModel emailModel, UUID userId) throws NotFoundException, InternalServerException {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
         EmailEntity emailEntity = new EmailEntity();
-        emailEntity.setEmail(email.getEmail());
+        emailEntity.setEmail(emailModel.getEmail());
         emailEntity.setCreated_at(new Date());
         emailEntity.setUpdated_at(new Date());
         emailEntity.setUser(user);
+
         try {
             emailRepository.save(emailEntity);
         } catch (Exception e) {
-            throw new InternalServerException("Error creating email");
+            throw new InternalServerException("Error occurred while creating the email.");
         }
     }
 
-    public void updateEmail(EmailModel email, UUID emailId, UUID userId) throws NotFoundException, InternalServerException {
-        EmailEntity existingEmail = emailRepository.findByIdAndUser_Id(emailId, userId).orElseThrow(() -> new NotFoundException("Email not found"));
-        existingEmail.setEmail(email.getEmail());
+    public void updateEmail(EmailModel emailModel, UUID emailId, UUID userId) throws NotFoundException, InternalServerException {
+        EmailEntity existingEmail = emailRepository.findByIdAndUser_Id(emailId, userId)
+                .orElseThrow(() -> new NotFoundException("Email not found"));
+
+        existingEmail.setEmail(emailModel.getEmail());
         existingEmail.setUpdated_at(new Date());
+
         try {
             emailRepository.save(existingEmail);
         } catch (Exception e) {
-            throw new InternalServerException(e.getMessage());
+            throw new InternalServerException("Error occurred while updating the email.");
         }
     }
 
@@ -69,27 +75,34 @@ public class EmailService {
         try {
             emailRepository.deleteByIdAndUser_Id(emailId, userId);
         } catch (Exception e) {
-            throw new InternalServerException("Failed to delete mail");
+            throw new InternalServerException("Failed to delete the email.");
         }
     }
 
-    public String requestVerification(UUID emailId, UUID userId, HttpServletRequest request) {
+    public String requestVerification(UUID emailId, UUID userId, HttpServletRequest request) throws NotFoundException {
+        emailRepository.findByIdAndUser_Id(emailId, userId)
+                .orElseThrow(() -> new NotFoundException("Email not found"));
         String verificationToken = UUID.randomUUID().toString();
         String appUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "");
-        System.out.println(appUrl);
         return appUrl + "/verify?token=" + verificationToken;
     }
 
-    public void verifyEmail(UUID emailId, UUID userId, String token) throws NotFoundException {
+    public void verifyEmail(UUID emailId, UUID userId, String token) throws NotFoundException, InternalServerException {
+        EmailEntity email = emailRepository.findByIdAndUser_Id(emailId, userId)
+                .orElseThrow(() -> new NotFoundException("Email not found"));
+
+        email.setVerified(true);
+        email.setUpdated_at(new Date());
         try {
-            EmailEntity email = emailRepository.findByIdAndUser_Id(emailId, userId).orElseThrow(() -> new NotFoundException("Email not found"));
-        } catch (NotFoundException e) {
-            throw new NotFoundException(e.getMessage());
+            emailRepository.save(email);
+        } catch (Exception e) {
+            throw new InternalServerException("Failed to verify email");
         }
     }
 
     public void makeEmailPrimary(UUID userId, UUID emailId) throws NotFoundException, InternalServerException {
-        List<EmailEntity> userEmails = emailRepository.findAllByUser_Id(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        List<EmailEntity> userEmails = emailRepository.findAllByUser_Id(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         try {
             for (EmailEntity userEmail : userEmails) {
@@ -97,9 +110,7 @@ public class EmailService {
             }
             emailRepository.saveAll(userEmails);
         } catch (Exception e) {
-            throw new InternalServerException("Failed to set primary email id");
+            throw new InternalServerException("Failed to set the primary email.");
         }
     }
-
-
 }

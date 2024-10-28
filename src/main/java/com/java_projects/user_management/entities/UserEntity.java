@@ -60,9 +60,9 @@ public class UserEntity {
     private boolean create_organization_enabled = false;
     @Column(name = "emails")
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,targetEntity = EmailEntity.class)
-    private List<EmailEntity> emailEntities;
+    private List<EmailEntity> emails;
     @Column(name = "phones")
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, targetEntity = PhoneEntity.class)
-    private List<PhoneEntity> phoneEntities;
+    private List<PhoneEntity> phones;
 }
 
