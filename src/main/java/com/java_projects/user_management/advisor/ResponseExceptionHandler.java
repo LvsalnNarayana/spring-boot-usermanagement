@@ -30,7 +30,6 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
         return getExceptionResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorMessage> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
         return getExceptionResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
